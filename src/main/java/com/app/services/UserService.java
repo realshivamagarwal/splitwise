@@ -5,7 +5,7 @@ import com.app.payloads.UserCreationDTO;
 
 public interface UserService {
 
-   String registerUser(UserCreationDTO userDTO);
+   UserCreationDTO registerUser(UserCreationDTO userDTO);
 
    User getUser(Long id);
 

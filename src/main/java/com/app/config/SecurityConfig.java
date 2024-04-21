@@ -38,21 +38,12 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsServiceImpl userDetailsServiceImpl;
 
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        UserDetails userDetails = User.builder().
-//                username("SHIVAM")
-//                .password(passwordEncoder().encode("shivam")).roles("ADMIN").
-//                build();
-//        return new InMemoryUserDetailsManager(userDetails);
-//    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                            auth.requestMatchers("/api/registerUser", "api/login").permitAll();
+                            auth.requestMatchers(AppConstant.PUBLIC_URLS).permitAll();
                             auth.anyRequest().authenticated();
                 })
                 .sessionManagement(httpSecuritySessionManagementConfigurer ->{
@@ -65,10 +56,6 @@ public class SecurityConfig {
                 .authenticationProvider(daoAuthenticationProvider())
                 .addFilterBefore(jwtFilter,UsernamePasswordAuthenticationFilter.class)
                 .build();
-
-
-        //.formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
-        // .httpBasic(Customizer.withDefaults())
     }
 
     @Bean

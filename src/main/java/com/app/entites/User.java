@@ -20,8 +20,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Size(min = 5, max = 20, message = "First Name must be between 5 and 30 characters long")
-    @Pattern(regexp = "^[a-zA-Z]*$", message = "First Name must not contain numbers or special characters")
+    @Size(min = 5, max = 20, message = "Full Name must be between 5 and 30 characters long")
+    @Pattern(regexp = "^[A-Za-z\s]+$", message = "Full Name must not contain numbers or special characters")
     private String fullName;
 
 

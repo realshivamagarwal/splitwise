@@ -4,6 +4,7 @@ import com.app.payloads.LoginCredentials;
 import com.app.payloads.UserCreationDTO;
 import com.app.security.JWTUtil;
 import com.app.services.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@SecurityRequirement(name = "Splitwise Application")
 public class AuthController {
 
     @Autowired
@@ -30,11 +32,11 @@ public class AuthController {
     private JWTUtil jwtUtil;
 
     @PostMapping("/registerUser")
-    public ResponseEntity<String> registerUser(@RequestBody UserCreationDTO userCreationDTO){
+    public ResponseEntity registerUser(@RequestBody UserCreationDTO userCreationDTO){
 
-        String response = userService.registerUser(userCreationDTO);
+        UserCreationDTO resDto = userService.registerUser(userCreationDTO);
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(resDto,  HttpStatus.CREATED);
     }
 
     @PostMapping("/login")

@@ -1,13 +1,13 @@
 package com.app.services;
 
 import com.app.entites.User;
+import com.app.exception.APIException;
 import com.app.payloads.UserCreationDTO;
 import com.app.repositories.UserRepo;
-import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -25,19 +25,20 @@ public class UserServiceImpl implements UserService{
     PasswordEncoder passwordEncoder;
 
     @Override
-    public String registerUser(UserCreationDTO userDTO) {
+    public UserCreationDTO registerUser(UserCreationDTO userDTO) {
 
+    try {
         User user = this.modelMapper.map(userDTO, User.class);
-        Optional<User> existUser = this.userRepo.findByEmail(user.getEmail());
 
-        if(!existUser.isEmpty())
-            return "user with this email already exists";
-
-          user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         User createdUser = userRepo.save(user);
+        UserCreationDTO resDto = modelMapper.map(createdUser, UserCreationDTO.class);
 
-        return "user is successfully created";
+        return resDto;
+    } catch (DataIntegrityViolationException e) {
+        throw new APIException("User already exists with emailId: " + userDTO.getEmail());
+    }
     }
 
     @Override
