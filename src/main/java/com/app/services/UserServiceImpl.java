@@ -44,13 +44,15 @@ public class UserServiceImpl implements UserService{
 
     try {
         User user = this.modelMapper.map(userDTO, User.class);
+
 //      send otp to the mail address of the user to verify the user
 //      Commenting it now for testing purpose, untill we configure the basic apis for splitwise application
-      /*
-        String otp = verifiedWithEmail(userDTO.getEmail());
-        user.setOtp(otp);
-        user.setOtpGeneratedTime(LocalDateTime.now());
-       */
+        /*
+            String otp = verifiedWithEmail(userDTO.getEmail());
+            user.setOtp(otp);
+            user.setOtpGeneratedTime(LocalDateTime.now());
+        */
+
         //Encode the Password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
@@ -60,7 +62,12 @@ public class UserServiceImpl implements UserService{
             if(role1.getRoleName().equals("ADMIN"))
                 role1.setRoleId(AppConstant.ADMIN_ID);
         }
-
+       Optional<User> nonRegistered = userRepo.nonRegisteredUser(user.getEmail());
+        if(nonRegistered.isPresent()){
+            user.setId(nonRegistered.get().getId());
+        }
+        user.setRegistered(true);
+        user.setActive(true);
         User createdUser = userRepo.save(user);
         UserCreationDTO resDto = modelMapper.map(createdUser, UserCreationDTO.class);
 
