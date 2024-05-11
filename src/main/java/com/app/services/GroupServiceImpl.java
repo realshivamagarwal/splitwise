@@ -64,7 +64,7 @@ public class GroupServiceImpl implements GroupService {
                     GroupUsers groupUsers = new GroupUsers();
                     groupUsers.setGroup(createdGroup);
                     groupUsers.setUser(groupMember);
-                    groupUsers.setCreatedBy(createdUser);
+                    groupUsers.setAddedBy(createdUser);
                     groupUsers.setActive(true);
                     return groupUsers;
                 })

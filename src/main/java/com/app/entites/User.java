@@ -1,6 +1,4 @@
 package com.app.entites;
-
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -11,7 +9,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 @Entity
 @Table(name = "user")
 @Data
@@ -49,8 +46,8 @@ public class User extends BaseModel {
     @ManyToMany(fetch = FetchType.EAGER)
     List<Role> roles =new ArrayList<>();
 
-//    @OneToMany(mappedBy = "user")
-//    private List<GroupUsers> groups = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<GroupUsers> groupUsers = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
     private List<ExpenseUser> expenseUsers = new ArrayList<>();
@@ -58,13 +55,13 @@ public class User extends BaseModel {
     @OneToMany(mappedBy = "createdBy")
     private List<Group> createdGroups = new ArrayList<>();
 
-    @OneToMany(mappedBy = "createdBy")
-    private List<GroupUsers> createdGroupUsers = new ArrayList<>();
+    @OneToMany(mappedBy = "addedBy")
+    private List<GroupUsers> addedMemberToGroups = new ArrayList<>();
 
     @OneToMany(mappedBy = "addedBy")
-    private List<Expense> createdExpense = new ArrayList<>();
+    private List<Expense> addedExpenses = new ArrayList<>();
 
     @OneToMany(mappedBy = "lastUpdatedBy")
-    private List<Expense> updatedExpense = new ArrayList<>();
+    private List<Expense> updatedExpenses = new ArrayList<>();
 
 }

@@ -23,7 +23,7 @@ public class GroupUsers extends BaseModel {
     private boolean isActive;
 
     @ManyToOne
-    @JoinColumn(name = "created_by")
-    private User createdBy;
+    @JoinColumn(name = "added_by")
+    private User addedBy;
 
 }
