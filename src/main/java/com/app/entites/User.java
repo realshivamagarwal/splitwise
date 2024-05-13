@@ -1,6 +1,4 @@
 package com.app.entites;
-
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -8,49 +6,62 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-
 @Entity
-@Table(name = "users")
+@Table(name = "user")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User extends BaseModel {
 
-    @Id
-    @Column(name = "user_id", nullable = false)
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long userId;
-
-    @Column(name = "user_full_name")
     @Size(min = 5, max = 20, message = "Full Name must be between 5 and 30 characters long")
     @Pattern(regexp = "^[A-Za-z\s]+$", message = "Full Name must not contain numbers or special characters")
     private String fullName;
 
-    @Column(name = "user_mobile_number")
     @Size(min = 10, max = 10, message = "Mobile Number must be exactly 10 digits long")
     @Pattern(regexp = "^\\d{10}$", message = "Mobile Number must contain only Numbers")
+    @Column(unique = true)
     private String mobileNumber;
 
     @Email
-    @Column(name = "user_email",unique = true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(name = "user_pass")
     private String password;
-    @Column(name = "user_referal")
+
     private String referalCode;
-    @Column(name = "user_currency")
+
     private String currency;
 
     private boolean active;
+
+    private boolean isRegistered;
+
     private String otp;
+
     private LocalDateTime otpGeneratedTime;
+
     @ManyToMany(fetch = FetchType.EAGER)
     List<Role> roles =new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<GroupUsers> groupUsers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<ExpenseUser> expenseUsers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "createdBy")
+    private List<Group> createdGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "addedBy")
+    private List<GroupUsers> addedMemberToGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "addedBy")
+    private List<Expense> addedExpenses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "lastUpdatedBy")
+    private List<Expense> updatedExpenses = new ArrayList<>();
 
 }
