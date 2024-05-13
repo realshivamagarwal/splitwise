@@ -19,10 +19,7 @@ public class ExpenseUser extends BaseModel {
     @ManyToOne
     @JoinColumn(name = "expense_id")
     private Expense expense;
-    @OneToOne
-    @JoinColumn(name = "balance")
-    private Balance balance;
-
+    private Long amount;
     @Enumerated(value = EnumType.STRING)
     private ExpenseUserType expenseUserType;
 
