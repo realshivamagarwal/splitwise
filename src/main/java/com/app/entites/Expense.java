@@ -4,8 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.annotation.CreatedDate;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,9 +30,6 @@ public class Expense extends BaseModel {
     private Long totalAmount;
 
     boolean isSettled = false;
-
-    @DateTimeFormat
-    private Date date;
 
     private boolean isActive;
 

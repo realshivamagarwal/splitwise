@@ -11,10 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -22,27 +19,17 @@ import java.security.Principal;
 @RequestMapping("/api/expense")
 @SecurityRequirement(name = "Splitwise Application")
 public class ExpenseController {
-    @Autowired
-    UserRepo userRepo;
 
     @Autowired
     ExpenseService expenseService;
 
-    @PostMapping("/addExpense")
-    public AddExpenseResponseDTO addExpense(Principal principal, @RequestBody AddExpenseRequestDTO expenseDTO){
-
-        Long addedByUserId = this.userRepo.findByEmail(principal.getName()).get().getId();
-
+    @PostMapping("/addExpense/{groupId}")
+    public AddExpenseResponseDTO addExpense(Principal principal,
+                                            @RequestBody AddExpenseRequestDTO expenseDTO,
+                                            @PathVariable Long groupId) {
         AddExpenseResponseDTO response = new AddExpenseResponseDTO();
         try{
-            Expense expense = expenseService.addExpense(
-                    expenseDTO.getGroupId(),
-                    expenseDTO.getTotalAmount(),
-                    expenseDTO.getAmountOwedBy(),
-                    expenseDTO.getAmountPaidBy(),
-                    addedByUserId,
-                    expenseDTO.getDescription()
-            );
+            Expense expense = expenseService.addExpense(expenseDTO,principal.getName(),groupId);
             response.setExpenseId(expense.getId());
             response.setStatus(ResponseStatus.SUCCESS);
         } catch (Exception e){

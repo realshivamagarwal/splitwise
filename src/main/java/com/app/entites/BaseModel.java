@@ -7,7 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -21,9 +21,19 @@ public class BaseModel {
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
-    private Instant createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
-    private Instant lastModifiedAt;
+    private Date lastModifiedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        lastModifiedAt = createdAt = new Date();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        lastModifiedAt = new Date();
+    }
 }

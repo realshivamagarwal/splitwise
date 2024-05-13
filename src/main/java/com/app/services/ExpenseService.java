@@ -1,17 +1,16 @@
 package com.app.services;
 
 import com.app.entites.Expense;
+import com.app.entites.Group;
+import com.app.entites.User;
+import com.app.payloads.AddExpenseRequestDTO;
+import com.app.payloads.AddGroupRequestDTO;
 
 import java.util.Map;
 
 public interface ExpenseService {
 
-    public Expense addExpense(Long groupId,
-                                  Long amount,
-                                  Map<Long,Long> amountOwedBy,
-                                  Map<Long,Long> amountPaidBy,
-                                  Long createdById,
-                                  String description);
+    Expense addExpense(AddExpenseRequestDTO expenseRequestDTO, String createdUserEmail, Long groupId);
 
 
 }
