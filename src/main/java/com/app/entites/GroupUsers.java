@@ -26,4 +26,8 @@ public class GroupUsers extends BaseModel {
     @JoinColumn(name = "added_by")
     private User addedBy;
 
+    @ManyToOne
+    @JoinColumn(name = "removed_by")
+    private User removedBy;
+
 }
