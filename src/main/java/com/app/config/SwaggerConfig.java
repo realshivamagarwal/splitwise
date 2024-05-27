@@ -19,7 +19,7 @@ public class SwaggerConfig {
                         .version("v1.0.0")
                         .contact(new Contact().name("Shivam Agarwal").url("https://github.com/realshivamagarwal").email("csvm0907@gmail.com"))
                         .license(new License().name("License").url("/")))
-                .externalDocs(new ExternalDocumentation().description("Splitwise Application Documentation")
+                        .externalDocs(new ExternalDocumentation().description("Splitwise Application Documentation")
                         .url("http://localhost:8080/swagger-ui/index.html"));
     }
 

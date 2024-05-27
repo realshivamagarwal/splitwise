@@ -29,8 +29,6 @@ public class Expense extends BaseModel {
 
     private Long totalAmount;
 
-    boolean isSettled = false;
-
     private boolean isActive;
 
     @ManyToOne

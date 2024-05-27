@@ -58,10 +58,18 @@ public class User extends BaseModel {
     @OneToMany(mappedBy = "addedBy")
     private List<GroupUsers> addedMemberToGroups = new ArrayList<>();
 
+    @OneToMany(mappedBy = "removedBy")
+    private List<GroupUsers> RemovedMemberToGroups = new ArrayList<>();
+
     @OneToMany(mappedBy = "addedBy")
     private List<Expense> addedExpenses = new ArrayList<>();
 
     @OneToMany(mappedBy = "lastUpdatedBy")
     private List<Expense> updatedExpenses = new ArrayList<>();
+
+    public User(String mobileNumber, String email) {
+        this.mobileNumber = mobileNumber;
+        this.email = email;
+    }
 
 }
