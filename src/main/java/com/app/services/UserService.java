@@ -1,6 +1,9 @@
 package com.app.services;
 
+import com.app.entites.Expense;
 import com.app.entites.User;
+import com.app.payloads.AddFriendRequestDTO;
+import com.app.payloads.FriendResponse;
 import com.app.payloads.UserCreationDTO;
 
 import java.util.List;
@@ -19,5 +22,5 @@ public interface UserService {
    String verifyAccountWithOTP(String email, String otp);
 
 
-
+   FriendResponse addFriend(AddFriendRequestDTO addFriendRequestDTO, String userEmail);
 }

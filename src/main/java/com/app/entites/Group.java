@@ -1,4 +1,5 @@
 package com.app.entites;
+import com.app.enums.GroupPart;
 import com.app.enums.GroupType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,9 @@ public class Group extends BaseModel {
     private GroupType type;
 
     private Long budget;
+
+    @Enumerated(EnumType.STRING)
+    private GroupPart part;
 
     @OneToMany(mappedBy = "group")
     private List<GroupUsers> groupUsers = new ArrayList<>();

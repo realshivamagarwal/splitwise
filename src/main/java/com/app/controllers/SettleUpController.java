@@ -1,9 +1,7 @@
 package com.app.controllers;
 
-import com.app.payloads.GetGroupResponseDTO;
 import com.app.payloads.GroupSettleUpResponseDTO;
 import com.app.payloads.ResponseStatus;
-import com.app.payloads.Transaction;
 import com.app.repositories.UserRepo;
 import com.app.services.GroupService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/settleUp")

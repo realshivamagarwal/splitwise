@@ -1,5 +1,6 @@
 package com.app.payloads;
 
+import com.app.helper.Transaction;
 import lombok.Data;
 
 import java.util.List;

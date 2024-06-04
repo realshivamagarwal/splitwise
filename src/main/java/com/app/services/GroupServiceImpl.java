@@ -1,7 +1,9 @@
 package com.app.services;
 
 import com.app.entites.*;
+import com.app.enums.GroupPart;
 import com.app.exception.APIException;
+import com.app.helper.Transaction;
 import com.app.payloads.*;
 import com.app.repositories.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -63,7 +65,12 @@ public class GroupServiceImpl implements GroupService {
         Group group = this.modelMapper.map(groupDTO, Group.class);
         group.setActive(true);
         group.setCreatedBy(user);
+        group.setPart(GroupPart.GROUP);
         Group createdGroup = this.groupRepo.save(group);
+
+
+
+
 
         // Save group users
         List<GroupUsers> groupUsersList = members.stream()
@@ -115,7 +122,7 @@ public class GroupServiceImpl implements GroupService {
                     .collect(Collectors.toList());
 
             users.stream().forEach(user -> {
-                ExpenseAmountDTO expenseAmountDTO = expenseService.expenseSettleUpForUser(groupId, expense.getId(),user.getId());
+                ExpenseAmountForUserDTO expenseAmountDTO = expenseService.expenseSettleUpForUser(groupId, expense.getId(),user.getId());
                 Long expenseAmount = expenseAmountDTO.getTotalExpenseAmount();
                 if(userAmount.containsKey(user.getId()))
                    userAmount.put(user.getId(), userAmount.get(user.getId()) + expenseAmount);

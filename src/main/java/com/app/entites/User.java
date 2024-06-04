@@ -64,8 +64,20 @@ public class User extends BaseModel {
     @OneToMany(mappedBy = "addedBy")
     private List<Expense> addedExpenses = new ArrayList<>();
 
+    @OneToMany(mappedBy = "deletedBy")
+    private List<Expense> deletedExpense = new ArrayList<>();
+
     @OneToMany(mappedBy = "lastUpdatedBy")
     private List<Expense> updatedExpenses = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(name = "user_friends",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "friend_id"))
+    private List<User> friends;
+
+    @OneToMany(mappedBy = "user")
+    private List<Activity> activities = new ArrayList<>();;
 
     public User(String mobileNumber, String email) {
         this.mobileNumber = mobileNumber;

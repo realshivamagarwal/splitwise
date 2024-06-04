@@ -1,20 +1,17 @@
 package com.app.controllers;
 
+import com.app.config.AppConstant;
 import com.app.entites.Expense;
-import com.app.entites.User;
 import com.app.payloads.*;
 import com.app.payloads.ResponseStatus;
 import com.app.repositories.UserRepo;
 import com.app.services.ExpenseService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/expense")
@@ -27,7 +24,7 @@ public class ExpenseController {
     UserRepo userRepo;
 
     @PostMapping("/addExpense/{groupId}")
-    public AddExpenseResponseDTO addExpense(Principal principal,
+    public AddExpenseResponseDTO addExpenseForGroup(Principal principal,
                                             @RequestBody AddExpenseRequestDTO expenseDTO,
                                             @PathVariable Long groupId) {
         Long userId  = userRepo.findByEmail(principal.getName()).get().getId();
@@ -42,12 +39,27 @@ public class ExpenseController {
         return response;
     }
 
-    @GetMapping("{groupId}/getExpense/{expenseId}")
+    @PostMapping("/addExpenseForFriend")
+    public AddExpenseResponseDTO addExpenseForFriend(Principal principal,
+                                                    @RequestBody AddExpenseFriendDTO expenseDTO) {
+        Long userId  = userRepo.findByEmail(principal.getName()).get().getId();
+        AddExpenseResponseDTO response = new AddExpenseResponseDTO();
+        try{
+            Expense expense = expenseService.addExpenseForFriend(expenseDTO,userId);
+            response.setExpenseId(expense.getId());
+            response.setStatus(ResponseStatus.SUCCESS);
+        } catch (Exception e){
+            response.setStatus(ResponseStatus.FAILURE);
+        }
+        return response;
+    }
+
+    @GetMapping("{groupId}/getExpenseAmountForUser/{expenseId}")
     public GetExpenseResponseDTO expenseSettleUp(Principal principal, @PathVariable Long groupId, @PathVariable Long expenseId) {
         Long userId  = userRepo.findByEmail(principal.getName()).get().getId();
         GetExpenseResponseDTO response = new GetExpenseResponseDTO();
         try {
-            ExpenseAmountDTO expenseAmountDTO = expenseService.expenseSettleUpForUser(groupId, expenseId, userId);
+            ExpenseAmountForUserDTO expenseAmountDTO = expenseService.expenseSettleUpForUser(groupId, expenseId, userId);
             response.setExpenseAmountDTO(expenseAmountDTO);
             response.setStatus(ResponseStatus.SUCCESS);
         } catch (Exception e){
@@ -91,5 +103,22 @@ public class ExpenseController {
         return response;
     }
 
-
+    @GetMapping("/getAllExpensesForGroup")
+    public GetAllExpenseDTO getAllExpense(Principal principal,
+                                          @RequestParam Long groupId,
+                                          @RequestParam(name = "pageNumber", defaultValue = AppConstant.PAGE_NUMBER, required = false) Integer pageNumber,
+                                          @RequestParam(name = "pageSize", defaultValue = AppConstant.PAGE_SIZE, required = false) Integer pageSize,
+                                          @RequestParam(name = "sortBy", defaultValue = AppConstant.SORT_EXPENSES_BY, required = false) String sortBy,
+                                          @RequestParam(name = "sortOrder", defaultValue = AppConstant.SORT_DIR, required = false) String sortOrder) {
+        Long userId  = userRepo.findByEmail(principal.getName()).get().getId();
+        GetAllExpenseDTO response = new GetAllExpenseDTO();
+        try{
+            GroupResponse groupResponse = this.expenseService.getAllExpensesForGroup(groupId, userId, pageNumber, pageSize, sortBy, sortOrder);
+            response.setGroup(groupResponse);
+            response.setStatus(ResponseStatus.SUCCESS);
+        } catch (Exception e) {
+            response.setStatus(ResponseStatus.FAILURE);
+        }
+        return response;
+    }
 }

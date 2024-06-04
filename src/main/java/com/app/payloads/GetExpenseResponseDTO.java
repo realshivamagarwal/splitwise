@@ -1,6 +1,5 @@
 package com.app.payloads;
 
-import com.app.entites.Expense;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class GetExpenseResponseDTO {
 
-    private ExpenseAmountDTO expenseAmountDTO;
+    private ExpenseAmountForUserDTO expenseAmountDTO;
 
     private ResponseStatus status;
 }

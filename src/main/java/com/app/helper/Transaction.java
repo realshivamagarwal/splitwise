@@ -1,4 +1,4 @@
-package com.app.payloads;
+package com.app.helper;
 
 import com.app.entites.User;
 import lombok.Getter;

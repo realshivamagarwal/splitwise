@@ -3,22 +3,18 @@ import com.app.entites.*;
 import com.app.enums.ExpenseType;
 import com.app.enums.ExpenseUserType;
 import com.app.exception.APIException;
-import com.app.payloads.AddExpenseRequestDTO;
-import com.app.payloads.AddTransactionRequestDTO;
-import com.app.payloads.ExpenseAmountDTO;
-import com.app.payloads.Transaction;
+import com.app.payloads.*;
 import com.app.repositories.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
@@ -98,7 +94,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
 
-    public ExpenseAmountDTO expenseSettleUpForUser(Long groupId, Long expenseId, Long userId) {
+    public ExpenseAmountForUserDTO expenseSettleUpForUser(Long groupId, Long expenseId, Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new APIException("User not found"));
 
@@ -113,20 +109,24 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         Expense expense = expenseRepo.findByGroupIdAndId(groupId, expenseId)
                 .orElseThrow(() -> new APIException("Expense is not for this Group"));
-
+        ExpenseAmountForUserDTO expenseAmountDTO = new ExpenseAmountForUserDTO();
         if(expense.isActive()) {
             List<ExpenseUser> expenseUsers = expenseUserRepo.findByExpenseIdAndUserId(expenseId, userId);
             Long totalAmount = expenseUsers.stream()
                     .mapToLong(expenseUser -> {
-                        if (expenseUser.getExpenseUserType().equals(ExpenseUserType.PAID_BY))
+                        if (expenseUser.getExpenseUserType().equals(ExpenseUserType.PAID_BY)) {
+                            expenseAmountDTO.setPaid_share(expenseUser.getAmount());
                             return expenseUser.getAmount();
-                        else
+                        }
+                        else {
+                            expenseAmountDTO.setOwed_share(expenseUser.getAmount());
                             return -expenseUser.getAmount();
+                        }
                     })
                     .sum();
-            ExpenseAmountDTO expenseAmountDTO = new ExpenseAmountDTO();
             expenseAmountDTO.setExpenseId(expenseId);
             expenseAmountDTO.setTotalExpenseAmount(totalAmount);
+            expenseAmountDTO.setUserId(userId);
             return expenseAmountDTO;
         }
         else {
@@ -206,8 +206,133 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .orElseThrow(() -> new APIException("Expense is not for this Group"));
 
         expense.setActive(false);
+        expense.setDeletedBy(deletedBy);
+        expense.setLastUpdatedBy(deletedBy);
         this.expenseRepo.save(expense);
         return false;
     }
+
+    @Override
+    public Expense addExpenseForFriend(AddExpenseFriendDTO expenseDTO, Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new APIException("User not found"));
+
+        // Create an Expense object from DTO
+        Expense expense = modelMapper.map(expenseDTO, Expense.class);
+
+        expense.setAddedBy(user);
+     //   expense.setGroup(group);
+        // Set default values
+        expense.setType(ExpenseType.TRANSACTION);
+        expense.setLastUpdatedBy(user);
+        expense.setActive(true);
+
+        // Save the expense
+        Expense savedExpense = expenseRepo.save(expense);
+
+        try {
+            // Process amount paid by users
+            List<ExpenseUser> expenseUsers = new ArrayList<>();
+
+            User amountPaidBy = userRepo.findById(expenseDTO.getAmountPaidBy())
+                    .orElseThrow(() -> new APIException("User not found with this id: " + userId));
+            User amountOwedBy = userRepo.findById(expenseDTO.getAmountOwedBy())
+                    .orElseThrow(() -> new APIException("User not found with this id: " + userId));
+
+            ExpenseUser expenseUserPaidBy = new ExpenseUser();
+
+            expenseUserPaidBy.setExpense(savedExpense);
+            expenseUserPaidBy.setAmount(expenseDTO.getTotalAmount());
+            expenseUserPaidBy.setUser(amountPaidBy);
+            expenseUserPaidBy.setExpenseUserType(ExpenseUserType.PAID_BY);
+            expenseUsers.add(expenseUserPaidBy);
+
+            ExpenseUser expenseUserOwedBy = new ExpenseUser();
+
+            expenseUserOwedBy.setExpense(savedExpense);
+            expenseUserOwedBy.setAmount(expenseDTO.getTotalAmount());
+            expenseUserOwedBy.setUser(amountOwedBy);
+            expenseUserOwedBy.setExpenseUserType(ExpenseUserType.OWED_BY);
+            expenseUsers.add(expenseUserOwedBy);
+            expenseUserRepo.saveAll(expenseUsers);
+        }
+        catch (Exception e){
+            this.expenseRepo.delete(savedExpense);
+        }
+        return savedExpense;
+    }
+
+    @Override
+    public GroupResponse getAllExpensesForGroup(Long groupId, Long userId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new APIException("User not found"));
+
+        Group group = groupRepo.findById(groupId)
+                .orElseThrow(() -> new APIException("Group not found"));
+
+        List<GroupUsers> groupUsers = groupUsersRepo.findAllByGroupId(groupId);
+
+        if (groupUsers.stream().noneMatch(gu -> gu.getUser().getId().equals(user.getId()))) {
+            throw new APIException("User not part of this group");
+        }
+        Pageable pageable;
+
+        if (sortBy != null && !sortBy.isEmpty()) {
+            Sort sort = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+            pageable = PageRequest.of(pageNumber, pageSize, sort);
+        } else {
+            pageable = PageRequest.of(pageNumber, pageSize);
+        }
+        Page<Expense> expensesPage = expenseRepo.findAllExpensesByGroupId(groupId, pageable);
+
+        List<ExpenseDTO> response =  new ArrayList<>();
+
+        for (Expense expense : expensesPage.getContent()) {
+            ExpenseDTO map =  new ExpenseDTO();
+            map.setDescription(expense.getDescription());
+            map.setId(expense.getId());
+            map.setGroupId(groupId);
+            map.setCurrency(expense.getCurrency());
+            map.setImage(expense.getImage());
+            map.setTotalAmount(expense.getTotalAmount());
+
+            map.setAddedBy(mapUserDTO(expense.getAddedBy()));
+            map.setDeletedBy(mapUserDTO(expense.getDeletedBy()));
+            map.setLastUpdatedBy(mapUserDTO(expense.getLastUpdatedBy()));
+
+            List<ExpenseUser> expenseUsers = this.expenseUserRepo.findByExpenseId(expense.getId());
+
+            List<User> users = expenseUsers.stream()
+                    .map(ExpenseUser::getUser).distinct()
+                    .collect(Collectors.toList());
+
+            List<ExpenseAmountForUserDTO> expenseAmount =  new ArrayList<>();
+            users.stream().forEach(user1 -> {
+                ExpenseAmountForUserDTO expenseAmountDTO = expenseSettleUpForUser(groupId, expense.getId(), user1.getId());
+                expenseAmount.add(expenseAmountDTO);
+            });
+            map.setUsers(expenseAmount);
+            response.add(map);
+        }
+        GroupResponse groupResponse = new GroupResponse();
+
+        groupResponse.setContent(response);
+        groupResponse.setPageNumber(expensesPage.getNumber());
+        groupResponse.setPageSize(expensesPage.getSize());
+        groupResponse.setTotalElements(expensesPage.getTotalElements());
+        groupResponse.setTotalPages(expensesPage.getTotalPages());
+        groupResponse.setLastPage(expensesPage.isLast());
+        return groupResponse;
+    }
+    private UserDTO mapUserDTO(User user) {
+        if (user != null) {
+            UserDTO userDTO = new UserDTO();
+            userDTO.setFullName(user.getFullName());
+            userDTO.setUserId(user.getId());
+            return userDTO;
+        }
+        return null;
+    }
+
 
 }

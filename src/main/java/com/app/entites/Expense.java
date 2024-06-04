@@ -36,6 +36,10 @@ public class Expense extends BaseModel {
     private User addedBy;
 
     @ManyToOne
+    @JoinColumn(name = "deleted_by")
+    private User deletedBy;
+
+    @ManyToOne
     @JoinColumn(name = "last_updated_by")
     private User lastUpdatedBy;
 
